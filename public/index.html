@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ar">
+  <head>
+    <meta charset="UTF-8" />
+    <title>أنشئ موقعك</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <h1>أنشئ موقعك الآن</h1>
+    <form method="POST" action="/create">
+      <input
+        type="text"
+        name="subdomain"
+        placeholder="اسم السب-دومين"
+        required
+      /><br />
+      <input
+        type="text"
+        name="title"
+        placeholder="عنوان الموقع"
+        required
+      /><br />
+      <textarea name="bio" placeholder="نبذة"></textarea><br />
+      <input type="text" name="linkLabel" placeholder="اسم الرابط" /><br />
+      <input type="url" name="linkUrl" placeholder="رابط" /><br />
+      <button type="submit">إنشاء</button>
+    </form>
+  </body>
+</html>
