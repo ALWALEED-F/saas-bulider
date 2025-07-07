@@ -1,6 +1,7 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const path = require("path");
+const fs = require("fs");
 const { createClient } = require("@supabase/supabase-js");
 
 dotenv.config();
@@ -14,14 +15,6 @@ const supabase = createClient(
   process.env.SUPABASE_KEY
 );
 
-// استخرج السب-دومين
-app.use((req, res, next) => {
-  const host = req.headers.host.split(":")[0];
-  const parts = host.split(".");
-  req.subdomain = parts.length > 2 ? parts[0] : null;
-  next();
-});
-
 // الصفحة الرئيسية
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
@@ -29,13 +22,14 @@ app.get("/", (req, res) => {
 
 // إنشاء موقع جديد
 app.post("/create", async (req, res) => {
-  const { subdomain, title, bio, linkLabel, linkUrl } = req.body;
+  const { username, title, bio, linkLabel, linkUrl, template } = req.body;
 
   const { error } = await supabase.from("sites").insert([
     {
-      subdomain,
+      username,
       title,
       bio,
+      template, // القالب اللي اختاره
       links: JSON.stringify([{ label: linkLabel, url: linkUrl }]),
     },
   ]);
@@ -47,56 +41,48 @@ app.post("/create", async (req, res) => {
 
   res.send(`
     <h1>✅ تم إنشاء موقعك!</h1>
-    <p>رابط موقعك: <a href="http://${subdomain}.yourdomain.com">اضغط هنا</a></p>
+    <p>رابط موقعك: <a href="/user/${username}">اضغط هنا</a></p>
   `);
 });
 
 // عرض موقع اليوزر
-app.get(/^\/.*/, async (req, res) => {
-  if (!req.subdomain) {
-    return res.redirect("/");
-  }
+app.get("/user/:username", async (req, res) => {
+  const { username } = req.params;
 
   const { data: site, error } = await supabase
     .from("sites")
     .select("*")
-    .eq("subdomain", req.subdomain)
+    .eq("username", username)
     .single();
 
   if (!site || error) {
     return res.status(404).send("<h1>❌ الموقع غير موجود</h1>");
   }
 
-  const html = `
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-<meta charset="UTF-8">
-<title>${site.title}</title>
-<script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100">
+  // حدد القالب
+  const templatePath = `templates/${site.template}.html`;
 
-<div class="max-w-2xl mx-auto py-10 text-center">
-  <h1 class="text-4xl font-bold text-gray-800">${site.title}</h1>
-  <p class="mt-4 text-gray-600">${site.bio}</p>
+  if (!fs.existsSync(templatePath)) {
+    return res.status(404).send("<h1>❌ القالب غير موجود</h1>");
+  }
 
-  <div class="mt-6 flex flex-wrap justify-center gap-2">
-    ${JSON.parse(site.links)
-      .map(
-        (link) => `
+  const template = fs.readFileSync(templatePath, "utf-8");
+
+  const linksHTML = JSON.parse(site.links)
+    .map(
+      (link) => `
       <a href="${link.url}" target="_blank" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
         ${link.label}
       </a>
     `
-      )
-      .join("")}
-  </div>
-</div>
+    )
+    .join("");
 
-</body>
-</html>
-`;
+  const html = template
+    .replace(/{{title}}/g, site.title)
+    .replace(/{{bio}}/g, site.bio)
+    .replace(/{{links}}/g, linksHTML);
+
   res.send(html);
 });
 

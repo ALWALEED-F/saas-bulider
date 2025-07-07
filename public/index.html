@@ -11,9 +11,9 @@
       <form method="POST" action="/create" class="space-y-3">
         <input
           type="text"
-          name="subdomain"
+          name="username"
           class="w-full border rounded px-3 py-2"
-          placeholder="اسم السب-دومين"
+          placeholder="اسم المستخدم"
           required
         />
         <input
@@ -40,6 +40,17 @@
           class="w-full border rounded px-3 py-2"
           placeholder="رابط"
         />
+
+        <select
+          name="template"
+          class="w-full border rounded px-3 py-2"
+          required
+        >
+          <option value="">اختر القالب</option>
+          <option value="business">Business</option>
+          <option value="minimal">Minimal</option>
+        </select>
+
         <button
           type="submit"
           class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
@@ -50,4 +61,3 @@
     </div>
   </body>
 </html>
-لهف
