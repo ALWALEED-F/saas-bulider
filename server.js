@@ -14,7 +14,7 @@ const supabase = createClient(
   process.env.SUPABASE_KEY
 );
 
-// استخرج السب-دومين من الـ Host header
+// استخرج السب-دومين
 app.use((req, res, next) => {
   const host = req.headers.host.split(":")[0];
   const parts = host.split(".");
@@ -22,12 +22,12 @@ app.use((req, res, next) => {
   next();
 });
 
-// 🖋️ الصفحة الرئيسية
+// الصفحة الرئيسية
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// 🖋️ إنشاء موقع جديد
+// إنشاء موقع جديد
 app.post("/create", async (req, res) => {
   const { subdomain, title, bio, linkLabel, linkUrl } = req.body;
 
@@ -51,8 +51,7 @@ app.post("/create", async (req, res) => {
   `);
 });
 
-// 🖋️ عرض موقع اليوزر
-// 🖋️ عرض موقع اليوزر
+// عرض موقع اليوزر
 app.get(/^\/.*/, async (req, res) => {
   if (!req.subdomain) {
     return res.redirect("/");
@@ -69,15 +68,35 @@ app.get(/^\/.*/, async (req, res) => {
   }
 
   const html = `
-      <h1>${site.title}</h1>
-      <p>${site.bio}</p>
-      <ul>
-        ${JSON.parse(site.links)
-          .map((link) => `<li><a href="${link.url}">${link.label}</a></li>`)
-          .join("")}
-      </ul>
-    `;
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>${site.title}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
 
+<div class="max-w-2xl mx-auto py-10 text-center">
+  <h1 class="text-4xl font-bold text-gray-800">${site.title}</h1>
+  <p class="mt-4 text-gray-600">${site.bio}</p>
+
+  <div class="mt-6 flex flex-wrap justify-center gap-2">
+    ${JSON.parse(site.links)
+      .map(
+        (link) => `
+      <a href="${link.url}" target="_blank" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        ${link.label}
+      </a>
+    `
+      )
+      .join("")}
+  </div>
+</div>
+
+</body>
+</html>
+`;
   res.send(html);
 });
 
