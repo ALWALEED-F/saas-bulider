@@ -3,6 +3,7 @@ const dotenv = require("dotenv");
 const path = require("path");
 const fs = require("fs");
 const { createClient } = require("@supabase/supabase-js");
+const PORT = process.env.PORT || 3000;
 
 dotenv.config();
 
@@ -86,6 +87,4 @@ app.get("/user/:username", async (req, res) => {
   res.send(html);
 });
 
-app.listen(process.env.PORT, () =>
-  console.log(`🚀 Server running on port ${process.env.PORT}`)
-);
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
